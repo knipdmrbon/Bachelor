@@ -26,6 +26,7 @@ library(caret)
 library(ggplot2)
 library(corrplot)
 library(viridis) # new colors
+library(gridExtra) # arrange more ggplot-objects on one page
 
 ############## Read and prepare the raw-data ##############
 set.seed(100) # set the seed to get similar results for the random-parts
@@ -57,6 +58,10 @@ DT.col_means <- DT.rawData[, lapply(.SD, mean), by = is_spam_flag]
 # bring the values into a "column-based" format for plotting
 DT.col_means <- melt(DT.col_means, id.vars = c("is_spam_flag"),value.name = 'mean')
 
+############################################################################################################
+##################### mean - pltos #########################################################################
+############################################################################################################
+
 # plot all means for the variables starting with "word_*"
 ggplot(data = DT.col_means[DT.col_means$variable %like% 'word',] ,
        aes(x = variable, y = mean, color = is_spam_flag)) +
@@ -84,6 +89,9 @@ ggplot(data = DT.col_means[DT.col_means$variable %like% 'cap',] ,
   scale_color_manual(values=c("green", "red")) +
   labs(color = "Spam") # Legende beschriften
 
+############################################################################################################
+##################### correlation - pltos ##################################################################
+############################################################################################################
 
 # calculate the correlation between all columns except the Spam-flag
 corrplot(cor(DT.rawData[,.SD, .SDcols = DT.header$V1]), method = "ellipse")
@@ -92,28 +100,43 @@ corrplot(cor(DT.rawData[,.SD, .SDcols = c(which(DT.header$V1 == 'word_freq_money
                                           which(DT.header$V1 == 'char_freq_#') : which(DT.header$V1 == 'capital_run_length_total'))]),
          method = "ellipse")
 
+############################################################################################################
+##################### QQ-plots #############################################################################
+############################################################################################################
+# create a function that takes a data.frame / data.table and gives back a list of qqnorm-ggplot elements
+create_qqplot <- function(x, ...) {
+  # define a list with the number of element equal to the column-number of the passed data.frame
+  gg_object <- vector(mode = "list", length = dim(x)[2])
+  for(i in 1:dim(x)[2])
+  {
+    # we need some quotes around the columnnames because some columns have special characters
+    # and so we have to supply the column-name in the form: "`char_freq_(`" 
+    quoted_name <- paste('`', colnames(x)[i], '`', sep = "") # needed for special charac
+    gg_object[[i]] <- ggplot(x, aes_string(sample = quoted_name)) + 
+                        stat_qq() +
+                        theme(axis.title.x = element_blank(),
+                              axis.title.y = element_blank())
+                        #ggtitle(colnames(x)[i]) + # take column-name as title 
+                        #theme(plot.title = element_text(margin = margin(t = 10, b = -20))) # move title into plotting area
+  }
+  return(gg_object)
+}
 
-############# continue here with better code ######################## 
+# create a list of qq-plots for all input-data except the spam flag
+qq_plots <- create_qqplot(DT.rawData[,1:57])
+# draw all qq-plots on one page
+do.call("grid.arrange", c(qq_plots, ncol = 4))
 
-boxplot(DT.rawData[,-c(55:58)])
+############################################################################################################
+##################### next section #########################################################################
+############################################################################################################
+
 hist(log(DT.rawData$word_freq_make))
 hist(log(DT.rawData$word_freq_address))
 
 densityplot(log(DT.rawData$word_freq_make))
-summary(DT.rawData[,])
 
 
-par(mfrow = c(60,1))
-apply(DT.rawData, 2, hist)
 
-str(d)
 
-str(DT.train)
-
-head(DT.rawData)
-
-table(DT.rawData$is_spam_flag)
-
-cor(DT.train[,1:10])
-corrplot(cor(DT.train[,24:41]), method = "ellipse")
 
