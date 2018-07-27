@@ -169,6 +169,32 @@ hist_plots <- create_hist(DT.transformed[,1:57])
 do.call("grid.arrange", c(hist_plots, ncol = 4))
 
 
+#density plots for all variables
+create_dens <- function(x, ...) {
+  # define a list with the number of element equal to the column-number of the passed data.frame
+  gg_object1 <- vector(mode = "list", length = dim(x)[2])
+  for(i in 1:dim(x)[2])
+  {
+    # we need some quotes around the columnnames because some columns have special characters
+    # and so we have to supply the column-name in the form: "`char_freq_(`" 
+    quoted_name <- paste('`', colnames(x)[i], '`', sep = "") # needed for special charac
+    gg_object1[[i]] <- ggplot(x, aes_string(x = quoted_name)) + 
+      geom_density() +
+      theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank())
+    #ggtitle(colnames(x)[i]) + # take column-name as title 
+    #theme(plot.title = element_text(margin = margin(t = 10, b = -20))) # move title into plotting area
+  }
+  return(gg_object1)
+}
+
+# create a list of hist-plots for all input-data except the spam flag
+dens_plots <- create_dens(DT.transformed[,1:57])
+# draw all qq-plots on one page
+do.call("grid.arrange", c(dens_plots, ncol = 4))
+
+
+
 
 
 
