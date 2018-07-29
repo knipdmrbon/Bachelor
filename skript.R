@@ -66,7 +66,7 @@ DT.col_means <- melt(DT.col_means, id.vars = c("is_spam_flag"),value.name = 'mea
 ggplot(data = DT.col_means[DT.col_means$variable %like% 'word',] ,
        aes(x = variable, y = mean, color = is_spam_flag)) +
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90° drehen
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90Â° drehen
         axis.title.x = element_blank()) + # delete x-labels
   scale_color_manual(values=c("green", "red")) +
   labs(color = "Spam") # Legende beschriften
@@ -75,7 +75,7 @@ ggplot(data = DT.col_means[DT.col_means$variable %like% 'word',] ,
 ggplot(data = DT.col_means[DT.col_means$variable %like% 'char',] ,
        aes(x = variable, y = mean, color = is_spam_flag)) +
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90° drehen
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90Â° drehen
         axis.title.x = element_blank()) + # delete x-labels
   scale_color_manual(values=c("green", "red")) +
   labs(color = "Spam") # Legende beschriften
@@ -84,7 +84,7 @@ ggplot(data = DT.col_means[DT.col_means$variable %like% 'char',] ,
 ggplot(data = DT.col_means[DT.col_means$variable %like% 'cap',] ,
        aes(x = variable, y = mean, color = is_spam_flag)) +
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90° drehen
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90Â° drehen
         axis.title.x = element_blank()) + # delete x-labels
   scale_color_manual(values=c("green", "red")) +
   labs(color = "Spam") # Legende beschriften
@@ -131,16 +131,15 @@ do.call("grid.arrange", c(qq_plots, ncol = 4))
 ##################### transform the data ###################################################################
 ############################################################################################################
 
-# This does not work ---> only one return value --> Why?
-#DT.transformed <- lapply(DT.rawData, function(x){ifelse(is.factor(x), x, log(x))})
-
 # Transform the data with log if it is not a factor
-DT.transformed <- lapply(DT.rawData, function(x){if(!is.factor(x)) 
-                                                  {
-                                                    log(x)
-                                                  } else {
-                                                    x
-                                                  }})
+DT.transformed <- lapply(DT.rawData,function(x){if(!is.factor(x)){
+  if(x!=0.00){
+    log(x)
+  } else {
+    x
+  }
+}
+})
 
 # transform the result of lapply (list) to a data.table
 DT.transformed <- as.data.table(DT.transformed)
@@ -168,6 +167,32 @@ create_hist <- function(x, ...) {
 hist_plots <- create_hist(DT.transformed[,1:57])
 # draw all qq-plots on one page
 do.call("grid.arrange", c(hist_plots, ncol = 4))
+
+
+#density plots for all variables
+create_dens <- function(x, ...) {
+  # define a list with the number of element equal to the column-number of the passed data.frame
+  gg_object1 <- vector(mode = "list", length = dim(x)[2])
+  for(i in 1:dim(x)[2])
+  {
+    # we need some quotes around the columnnames because some columns have special characters
+    # and so we have to supply the column-name in the form: "`char_freq_(`" 
+    quoted_name <- paste('`', colnames(x)[i], '`', sep = "") # needed for special charac
+    gg_object1[[i]] <- ggplot(x, aes_string(x = quoted_name)) + 
+      geom_density() +
+      theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank())
+    #ggtitle(colnames(x)[i]) + # take column-name as title 
+    #theme(plot.title = element_text(margin = margin(t = 10, b = -20))) # move title into plotting area
+  }
+  return(gg_object1)
+}
+
+# create a list of hist-plots for all input-data except the spam flag
+dens_plots <- create_dens(DT.transformed[,1:57])
+# draw all qq-plots on one page
+do.call("grid.arrange", c(dens_plots, ncol = 4))
+
 
 
 
