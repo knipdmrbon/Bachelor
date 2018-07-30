@@ -18,4 +18,7 @@ Was habe ich gemacht:
    1) if Abfrage in Zeile 136 gelöscht
    2) Log-transformiert mit log(x + 0.00000001)
    
+Alternative: 
+   Lässt man alle 0-Werte weg und macht dann eine Log-Transformation dann hätte man normalverteilte Variablen. Können wir das für die Analyse argumentieren?
+   
  
