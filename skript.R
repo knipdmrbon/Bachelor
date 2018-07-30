@@ -123,7 +123,7 @@ create_qqplot <- function(x, ...) {
 }
 
 # create a list of qq-plots for all input-data except the spam flag
-qq_plots <- create_qqplot(DT.rawData[,1:57])
+qq_plots <- create_qqplot(DT.rawData[,!c("is_spam_flag")])
 # draw all qq-plots on one page
 do.call("grid.arrange", c(qq_plots, ncol = 4))
 
@@ -132,13 +132,12 @@ do.call("grid.arrange", c(qq_plots, ncol = 4))
 ############################################################################################################
 
 # Transform the data with log if it is not a factor
-DT.transformed <- lapply(DT.rawData,function(x){if(!is.factor(x)){
-  if(x!=0.00){
-    log(x)
+DT.transformed <- lapply(DT.rawData,function(x){
+  if(!is.factor(x)){
+    log(x) # also possible: log(x + 0.00000001)
   } else {
     x
   }
-}
 })
 
 # transform the result of lapply (list) to a data.table
@@ -164,7 +163,7 @@ create_hist <- function(x, ...) {
 }
 
 # create a list of hist-plots for all input-data except the spam flag
-hist_plots <- create_hist(DT.transformed[,1:57])
+hist_plots <- create_hist(DT.transformed)
 # draw all qq-plots on one page
 do.call("grid.arrange", c(hist_plots, ncol = 4))
 
@@ -189,13 +188,36 @@ create_dens <- function(x, ...) {
 }
 
 # create a list of hist-plots for all input-data except the spam flag
-dens_plots <- create_dens(DT.transformed[,1:57])
+dens_plots <- create_dens(DT.transformed)
 # draw all qq-plots on one page
 do.call("grid.arrange", c(dens_plots, ncol = 4))
 
+############################################################################################################
+##################### Try to apply PCA on the data ###################################################################
+############################################################################################################
 
+ir.pca <- prcomp(DT.rawData[,!c("is_spam_flag")],
+                 center = TRUE,
+                 scale. = TRUE) 
+plot(ir.pca, type = "l")
+summary(ir.pca) # with non-transformed data we need 43 variables to describe more than 90% of the variance
 
+# Transform the data with log if it is not a factor
+DT.transformed <- lapply(DT.rawData,function(x){
+  if(!is.factor(x)){
+    log(x + 0.00000001)
+  } else {
+    x
+  }
+})
+# transform the result of lapply (list) to a data.table
+DT.transformed <- as.data.table(DT.transformed)
 
+ir.pca <- prcomp(DT.transformed[, !c("is_spam_flag")],
+                 center = TRUE,
+                 scale. = TRUE) 
+plot(ir.pca, type = "l")
+summary(ir.pca) # with transformed data we need 40 variables to describe more than 90% of the variance
 
 
 
