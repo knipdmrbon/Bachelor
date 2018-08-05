@@ -44,13 +44,11 @@ names(DT.rawData) <- c(as.vector(DT.header$V1), "is_spam_flag")
 DT.rawData$is_spam_flag <- factor(DT.rawData$is_spam_flag, labels = c("No", "Yes"))
 
 # Find randomly selected rownumbers of the raw data so that we get 90% of data for training
-train_rows <- createDataPartition(DT.rawData$is_spam_flag, p = 0.9, list = FALSE)
-# create data.table for training purposes
-DT.train <- DT.rawData[train_rows,]
-# create data.table for testing purposes
-DT.test <- DT.rawData[-train_rows,]
-
-
+train_rows <- createDataPartition(DT.rawData$is_spam_flag, p = 0.9, list = FALSE, times = 100)
+# create list of data.tables for training purposes
+DT.train <- apply(train_rows, 2, function(x){DT.rawData[x,]})
+# create list of data.tables for testing purposes
+DT.test <- apply(train_rows, 2, function(x){DT.rawData[-x,]})
 
 ####################################  Data - analysis ####################################
 
@@ -60,7 +58,7 @@ DT.col_means <- DT.rawData[, lapply(.SD, mean), by = is_spam_flag]
 DT.col_means <- melt(DT.col_means, id.vars = c("is_spam_flag"),value.name = 'mean')
 
 ############################################################################################################
-##################### mean - pltos #########################################################################
+##################### mean - plots #########################################################################
 ############################################################################################################
 
 # plot all means for the variables starting with "word_*"
@@ -91,7 +89,7 @@ ggplot(data = DT.col_means[DT.col_means$variable %like% 'cap',] ,
   labs(color = "Spam") # Legende beschriften
 
 ############################################################################################################
-##################### correlation - pltos ##################################################################
+##################### correlation - plots ##################################################################
 ############################################################################################################
 
 # calculate the correlation between all columns except the Spam-flag
@@ -222,16 +220,13 @@ summary(ir.pca) # with transformed data we need 40 variables to describe more th
 
 
 ################################################################
+###################Analysis#############################
 ################################################################
-################################################################
 
-trainLDA <- lda(is_spam_flag ~ ., data = DT.train)
-testLDA <- predict(trainLDA, DT.test)
-table(testLDA$class, DT.test$is_spam_flag)
+## Make LDA - Analysis
+source("01_LDA.R")
+ergebnis_LDA <- learnLDA(DT.train, DT.test)
 
-
-trainQDA <- qda(is_spam_flag ~ ., data = DT.train)
-testQDA <- predict(trainQDA, DT.test)
-table(testQDA$class, DT.test$is_spam_flag)
-
-?predict
+## Make QDA - Analysis
+source("02_QDA.R")
+ergebnis_QDA <- learnQDA(DT.train, DT.test)
