@@ -27,9 +27,10 @@ library(ggplot2)
 library(corrplot)
 library(viridis) # new colors
 library(gridExtra) # arrange more ggplot-objects on one page
+library(MASS) # needed for LDA and QDA
 
 ############## Read and prepare the raw-data ##############
-set.seed(100) # set the seed to get similar results for the random-parts
+set.seed(115) # set the seed to get similar results for the random-parts
 # set the working directory to the path of the script
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) 
 
@@ -220,4 +221,17 @@ plot(ir.pca, type = "l")
 summary(ir.pca) # with transformed data we need 40 variables to describe more than 90% of the variance
 
 
+################################################################
+################################################################
+################################################################
 
+trainLDA <- lda(is_spam_flag ~ ., data = DT.train)
+testLDA <- predict(trainLDA, DT.test)
+table(testLDA$class, DT.test$is_spam_flag)
+
+
+trainQDA <- qda(is_spam_flag ~ ., data = DT.train)
+testQDA <- predict(trainQDA, DT.test)
+table(testQDA$class, DT.test$is_spam_flag)
+
+?predict
