@@ -36,7 +36,3 @@ Alternative:
 **********************************
 Wollte eigentlich eine Dimensionsreduktion durchführen, aber mit PCA kommt raus, dass wir noch immer ca. 40 Variablen brauchen. Da mein LDA und QDA auf normalverteilte Variablen & sogar noch gleiche CoVarianzmatrix setzt werde ich wahrscheinlich nur sehr wenige Variablen as Predictor nehmen. 
 
-**********************************
-****** Dominik
-**********************************
-Habe soeben meine Anpassungen für unseren gemeinsamen code hochgeladen. Paar Änderungen beim logarithmieren usw. Außerdem  habe ich meine Modelle hochgeladen. Würde mich freuen wenn du sie dir bei gelegenheit mal ansiehst und mir tipps gibst wie ich es verbessern könnte, oder ob ich was vergessen habe. Habe viel im internet recherchiert wie man das problem angeht und hab auch von Lösungen für andere datensets was nachgebaut. Ich habe außerdem eine Code für eine Übersichtstabelle gefunden und die schon angepasst. Denke mir das könnte auch bei dir gut passen (tabellen in R sind gar nicht so einfach). 
