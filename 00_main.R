@@ -226,7 +226,7 @@ summary(ir.pca) # with transformed data we need 40 variables to describe more th
 ## Make a stepwise VIF selection
 source("03_VIF_selection.R")
 DT.rawData_VIF <- DT.rawData[, !c("is_spam_flag")]
-names(DT.rawData_VIF) <- paste0("X",1:dim(DT.rawData_VIF)[2])
+names(DT.rawData_VIF) <- paste0("X",1:dim(DT.rawData_VIF)[2]) # -> can't handle special characters in columns
 vif_func(DT.rawData_VIF, thresh = 5, trace = T) # kick word_freq_857 and word_freq_415 out
 
 
@@ -246,8 +246,24 @@ quoted_columns <- paste('`', c("char_freq_!", "capital_run_length_longest",
 ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_LDA))
 
-### try 3 ###
+### try 3 ### --> just test the result with only one predictor
 quoted_columns <- paste('`', c("char_freq_!"), '`', sep = "") 
+ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
+mean(unlist(ergebnis_LDA))
+
+### try 4 ### --> kick out the variables found by VIF
+quoted_columns <- paste('`',
+                        names(DT.rawData)[!(names(DT.rawData) %in%
+                                            c("is_spam_flag","word_freq_857", "word_freq_415"))],
+                        '`',
+                        sep = "") 
+ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
+mean(unlist(ergebnis_LDA))
+
+### try 5 ### --> calculate corr between is_spam_flag and all other variables and take the "biggest" correlations
+quoted_columns <- paste('`', c("capital_run_length_total","capital_run_length_longest","char_freq_!",
+                               "word_freq_hp","word_freq_your","word_freq_000", "word_freq_you",
+                               "word_freq_business","word_freq_free","word_freq_remove"), '`', sep = "") 
 ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_LDA))
 
@@ -269,7 +285,13 @@ ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_QDA))
 
 ### try 3 ###
-quoted_columns <- paste('`', c("char_freq_!"), '`', sep = "") 
-ergebnis_QDA <- learnLDA(DT.train, DT.test, quoted_columns)
+quoted_columns <- paste('`', c("char_freq_!", "capital_run_length_longest", "word_freq_your"), '`', sep = "") 
+ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_QDA))
 
+### try 4 ###
+quoted_columns <- paste('`', c("capital_run_length_total","capital_run_length_longest","char_freq_!",
+                               "word_freq_hp","word_freq_your","word_freq_000", "word_freq_you",
+                              "word_freq_business","word_freq_free","word_freq_remove"), '`', sep = "") 
+ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
+mean(unlist(ergebnis_QDA))
