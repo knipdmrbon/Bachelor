@@ -1,5 +1,7 @@
 # Bachelor
-
+**********************************
+****** Fabian
+**********************************
 Hallo Dominik,
 
 ich habe im Code einen Abschnitt von dir angepasst. Bei der Transformation der Daten (Zeile 135) möchtest du nur jene Werte log-transformieren die ungleich 0 sind. Bin dabei auf 2 Dinge gestoßen:
@@ -20,5 +22,16 @@ Was habe ich gemacht:
    
 Alternative: 
    Lässt man alle 0-Werte weg und macht dann eine Log-Transformation dann hätte man normalverteilte Variablen. Können wir das für die Analyse argumentieren?
+
+**********************************
+****** Dominik
+**********************************
+
+   Hey! Ja, dass if nicht vektoriell funktioniert weiss ich, da bietet sich ifelse natürlich an aber das hat ja nicht funktioniert. Bin absolut für die Änderung so wie du sie durchgeführt hast. 
    
- 
+   Bzgl Alternative, meinst du dass du alle 0er weglässt oder die variablen mit den vielen 0ern weil man argumentieren könnte dass sie keinen einfluss haben (das habe ich eben gemeint -> reduktion der dimension). Ich glaube halt nicht dass es klug ist die 0er allein rauszulöschen. Verhaut uns das dann nicht die ganzen daten? dann müssten wir ja eig den kompletten datensatz raustun und das reduziert ja dann alles wahnsinnig.
+   
+**********************************
+****** Fabian
+**********************************
+Wollte eigentlich eine Dimensionsreduktion durchführen, aber mit PCA kommt raus, dass wir noch immer ca. 40 Variablen brauchen. Da mein LDA und QDA auf normalverteilte Variablen & sogar noch gleiche CoVarianzmatrix setzt werde ich wahrscheinlich nur sehr wenige Variablen as Predictor nehmen. 
