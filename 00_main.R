@@ -229,10 +229,47 @@ DT.rawData_VIF <- DT.rawData[, !c("is_spam_flag")]
 names(DT.rawData_VIF) <- paste0("X",1:dim(DT.rawData_VIF)[2])
 vif_func(DT.rawData_VIF, thresh = 5, trace = T) # kick word_freq_857 and word_freq_415 out
 
-## Make LDA - Analysis
-source("01_LDA.R")
-ergebnis_LDA <- learnLDA(DT.train, DT.test)
 
-## Make QDA - Analysis
+########## LDA - Analysis ##########
+source("01_LDA.R")
+
+### try 1 ###
+# needed for special charachters in the column-names of the raw-data
+quoted_columns <- paste('`', names(DT.rawData)[names(DT.rawData) != "is_spam_flag"], '`', sep = "") 
+ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
+mean(unlist(ergebnis_LDA))
+
+### try 2 ###
+quoted_columns <- paste('`', c("char_freq_!", "capital_run_length_longest",
+                               "capital_run_length_average", "word_freq_your",
+                               "char_freq_$", "capital_run_length_total"), '`', sep = "") 
+ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
+mean(unlist(ergebnis_LDA))
+
+### try 3 ###
+quoted_columns <- paste('`', c("char_freq_!"), '`', sep = "") 
+ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
+mean(unlist(ergebnis_LDA))
+
+
+########## QDA - Analysis ##########
 source("02_QDA.R")
-ergebnis_QDA <- learnQDA(DT.train, DT.test)
+
+### try 1 ###
+# needed for special charachters in the column-names of the raw-data
+quoted_columns <- paste('`', names(DT.rawData)[names(DT.rawData) != "is_spam_flag"], '`', sep = "") 
+ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
+mean(unlist(ergebnis_QDA))
+
+### try 2 ###
+quoted_columns <- paste('`', c("char_freq_!", "capital_run_length_longest",
+                               "capital_run_length_average", "word_freq_your",
+                               "char_freq_$", "capital_run_length_total"), '`', sep = "") 
+ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
+mean(unlist(ergebnis_QDA))
+
+### try 3 ###
+quoted_columns <- paste('`', c("char_freq_!"), '`', sep = "") 
+ergebnis_QDA <- learnLDA(DT.train, DT.test, quoted_columns)
+mean(unlist(ergebnis_QDA))
+
