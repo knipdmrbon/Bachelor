@@ -220,8 +220,14 @@ summary(ir.pca) # with transformed data we need 40 variables to describe more th
 
 
 ################################################################
-###################Analysis#############################
+###################Analysis - Fabian############################
 ################################################################
+
+## Make a stepwise VIF selection
+source("03_VIF_selection.R")
+DT.rawData_VIF <- DT.rawData[, !c("is_spam_flag")]
+names(DT.rawData_VIF) <- paste0("X",1:dim(DT.rawData_VIF)[2])
+vif_func(DT.rawData_VIF, thresh = 5, trace = T) # kick word_freq_857 and word_freq_415 out
 
 ## Make LDA - Analysis
 source("01_LDA.R")
