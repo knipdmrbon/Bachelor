@@ -20,17 +20,31 @@
 
 
 ############## load all required packages ##############
+install.packages("data.table")
+install.packages("caret")
+install.packages("tidyverse")
+install.packages("gridExtra")
+install.packages("descr")
+install.packages("viridis")
+install.packages("doParallel")
+install.packages("pander")
+install.packages("pROC")
+install.packages("rattle")
 library(rstudioapi) # for setting the working directory to the path of the script
 library(data.table) 
+library(descr)
 library(caret)
 library(ggplot2)
 library(corrplot)
 library(viridis) # new colors
 library(gridExtra) # arrange more ggplot-objects on one page
-library(MASS) # needed for LDA and QDA
+library(doParallel)
+library(pander)
+library(pROC)
+library(rattle)
 
 ############## Read and prepare the raw-data ##############
-set.seed(115) # set the seed to get similar results for the random-parts
+set.seed(100) # set the seed to get similar results for the random-parts
 # set the working directory to the path of the script
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) 
 
@@ -42,15 +56,33 @@ DT.rawData <- fread("spambase/spambase.data", sep = ",", header = FALSE)
 names(DT.rawData) <- c(as.vector(DT.header$V1), "is_spam_flag")
 # define the flag for spam as factor
 DT.rawData$is_spam_flag <- factor(DT.rawData$is_spam_flag, labels = c("No", "Yes"))
+#change int variables to numeric
+DT.rawData[,56:57] = lapply(DT.rawData[,56:57], as.numeric)
+
+####################################  Split data ####################################
 
 # Find randomly selected rownumbers of the raw data so that we get 90% of data for training
-train_rows <- createDataPartition(DT.rawData$is_spam_flag, p = 0.9, list = FALSE, times = 100)
-# create list of data.tables for training purposes
-DT.train <- apply(train_rows, 2, function(x){DT.rawData[x,]})
-# create list of data.tables for testing purposes
-DT.test <- apply(train_rows, 2, function(x){DT.rawData[-x,]})
+train_rows <- createDataPartition(DT.rawData$is_spam_flag, p = 0.9, list = FALSE)
+# create data.table for training purposes
+DT.train <- DT.rawData[train_rows,]
+# create data.table for testing purposes
+DT.test <- DT.rawData[-train_rows,]
+
+
 
 ####################################  Data - analysis ####################################
+
+#First indication of distribution of response including a bar plot
+freq(DT.rawData$is_spam_flag)
+
+# Check dimensions
+dim(DT.rawData)
+
+# Check variable classes
+sapply(DT.rawData, class)
+
+# Summary statistics
+summary(DT.rawData)
 
 # calculate all column means, based on is_spam_flag
 DT.col_means <- DT.rawData[, lapply(.SD, mean), by = is_spam_flag]
@@ -65,7 +97,7 @@ DT.col_means <- melt(DT.col_means, id.vars = c("is_spam_flag"),value.name = 'mea
 ggplot(data = DT.col_means[DT.col_means$variable %like% 'word',] ,
        aes(x = variable, y = mean, color = is_spam_flag)) +
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90° drehen
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90?? drehen
         axis.title.x = element_blank()) + # delete x-labels
   scale_color_manual(values=c("green", "red")) +
   labs(color = "Spam") # Legende beschriften
@@ -74,7 +106,7 @@ ggplot(data = DT.col_means[DT.col_means$variable %like% 'word',] ,
 ggplot(data = DT.col_means[DT.col_means$variable %like% 'char',] ,
        aes(x = variable, y = mean, color = is_spam_flag)) +
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90° drehen
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90?? drehen
         axis.title.x = element_blank()) + # delete x-labels
   scale_color_manual(values=c("green", "red")) +
   labs(color = "Spam") # Legende beschriften
@@ -83,13 +115,13 @@ ggplot(data = DT.col_means[DT.col_means$variable %like% 'char',] ,
 ggplot(data = DT.col_means[DT.col_means$variable %like% 'cap',] ,
        aes(x = variable, y = mean, color = is_spam_flag)) +
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90° drehen
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), # Beschriftung x-Achse um 90?? drehen
         axis.title.x = element_blank()) + # delete x-labels
   scale_color_manual(values=c("green", "red")) +
   labs(color = "Spam") # Legende beschriften
 
 ############################################################################################################
-##################### correlation - plots ##################################################################
+##################### correlation - pltos ##################################################################
 ############################################################################################################
 
 # calculate the correlation between all columns except the Spam-flag
@@ -98,6 +130,16 @@ corrplot(cor(DT.rawData[,.SD, .SDcols = DT.header$V1]), method = "ellipse")
 corrplot(cor(DT.rawData[,.SD, .SDcols = c(which(DT.header$V1 == 'word_freq_money') : which(DT.header$V1 == 'word_freq_cs'),
                                           which(DT.header$V1 == 'char_freq_#') : which(DT.header$V1 == 'capital_run_length_total'))]),
          method = "ellipse")
+
+
+# Correlations by levels in response
+for (lvl in unique(DT.rawData$is_spam_flag)){
+  corrplot(cor(DT.rawData[DT.rawData$is_spam_flag == lvl, 1:57]), 
+           tl.col = "black", tl.cex = 0.8, tl.srt = 45, 
+           type = "lower")
+  rm(lvl)
+}  
+
 
 ############################################################################################################
 ##################### QQ-plots #############################################################################
@@ -131,16 +173,19 @@ do.call("grid.arrange", c(qq_plots, ncol = 4))
 ############################################################################################################
 
 # Transform the data with log if it is not a factor
-DT.transformed <- lapply(DT.rawData,function(x){
-  if(!is.factor(x)){
-    log(x) # also possible: log(x + 0.00000001)
-  } else {
-    x
-  }
-})
+#DT.transformed <- lapply(DT.rawData,function(x){
+#  if(!is.factor(x)){
+#    log(x) # also possible: log(x + 0.00000001)
+#  } else {
+#    x
+#  }
+#})
+
+DT.transformed <- lapply(DT.rawData[,1:57], log1p)
+DT.transformed <- data.frame(DT.transformed, is_spam_flag = DT.rawData$is_spam_flag)
 
 # transform the result of lapply (list) to a data.table
-DT.transformed <- as.data.table(DT.transformed)
+#DT.transformed <- as.data.table(DT.transformed)
 
 # create a function that takes a data.frame / data.table and gives back a list of hist-ggplot elements
 create_hist <- function(x, ...) {
@@ -186,7 +231,7 @@ create_dens <- function(x, ...) {
   return(gg_object1)
 }
 
-# create a list of hist-plots for all input-data except the spam flag
+# create a list of dense-plots for all input-data except the spam flag
 dens_plots <- create_dens(DT.transformed)
 # draw all qq-plots on one page
 do.call("grid.arrange", c(dens_plots, ncol = 4))
@@ -202,22 +247,21 @@ plot(ir.pca, type = "l")
 summary(ir.pca) # with non-transformed data we need 43 variables to describe more than 90% of the variance
 
 # Transform the data with log if it is not a factor
-DT.transformed <- lapply(DT.rawData,function(x){
-  if(!is.factor(x)){
-    log(x + 0.00000001)
-  } else {
-    x
-  }
-})
+#DT.transformed <- lapply(DT.rawData,function(x){
+# if(!is.factor(x)){
+#    log(x + 0.00000001)
+#  } else {
+#    x
+#  }
+#})
 # transform the result of lapply (list) to a data.table
-DT.transformed <- as.data.table(DT.transformed)
-
+#DT.transformed <- as.data.table(DT.transformed)
+#
 ir.pca <- prcomp(DT.transformed[, !c("is_spam_flag")],
                  center = TRUE,
                  scale. = TRUE) 
 plot(ir.pca, type = "l")
 summary(ir.pca) # with transformed data we need 40 variables to describe more than 90% of the variance
-
 
 ################################################################
 ###################Analysis - Fabian############################
