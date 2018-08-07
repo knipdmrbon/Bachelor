@@ -42,6 +42,7 @@ library(doParallel)
 library(pander)
 library(pROC)
 library(rattle)
+library(MASS) # needed for LDA and QDA
 
 ############## Read and prepare the raw-data ##############
 set.seed(100) # set the seed to get similar results for the random-parts
@@ -62,12 +63,11 @@ DT.rawData[,56:57] = lapply(DT.rawData[,56:57], as.numeric)
 ####################################  Split data ####################################
 
 # Find randomly selected rownumbers of the raw data so that we get 90% of data for training
-train_rows <- createDataPartition(DT.rawData$is_spam_flag, p = 0.9, list = FALSE)
-# create data.table for training purposes
-DT.train <- DT.rawData[train_rows,]
-# create data.table for testing purposes
-DT.test <- DT.rawData[-train_rows,]
-
+train_rows <- createDataPartition(DT.rawData$is_spam_flag, p = 0.9, list = FALSE, times = 100)
+# create list of data.tables for training purposes
+DT.train <- apply(train_rows, 2, function(x){DT.rawData[x,]})
+# create list of data.tables for testing purposes
+DT.test <- apply(train_rows, 2, function(x){DT.rawData[-x,]})
 
 
 ####################################  Data - analysis ####################################
@@ -121,7 +121,7 @@ ggplot(data = DT.col_means[DT.col_means$variable %like% 'cap',] ,
   labs(color = "Spam") # Legende beschriften
 
 ############################################################################################################
-##################### correlation - pltos ##################################################################
+##################### correlation - plots ##################################################################
 ############################################################################################################
 
 # calculate the correlation between all columns except the Spam-flag
