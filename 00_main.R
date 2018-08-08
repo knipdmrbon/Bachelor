@@ -9,9 +9,9 @@
 #############################################################################################
 # DT.header --------------------> Header for the raw-data except last column (is spam or not)
 # DT.rawData -------------------> Raw data, read directly from the data-repository. (http://archive.ics.uci.edu/ml/datasets/Spambase?ref=datanews.io)
-# DT.train ---------------------> 90% of the raw-data used for training the different models. 
-# DT.test ----------------------> 10% of the raw-data used for testing the accuracy of the different models. 
-# 
+# DT.train ---------------------> 90% of the raw-data used for training the different models.
+# DT.test ----------------------> 10% of the raw-data used for testing the accuracy of the different models.
+#
 #
 #
 #
@@ -19,35 +19,21 @@
 
 
 
-############## load all required packages ##############
-install.packages("data.table")
-install.packages("caret")
-install.packages("tidyverse")
-install.packages("gridExtra")
-install.packages("descr")
-install.packages("viridis")
-install.packages("doParallel")
-install.packages("pander")
-install.packages("pROC")
-install.packages("rattle")
-library(rstudioapi) # for setting the working directory to the path of the script
-library(data.table) 
-library(descr)
-library(caret)
-library(ggplot2)
-library(corrplot)
-library(viridis) # new colors
-library(gridExtra) # arrange more ggplot-objects on one page
-library(doParallel)
-library(pander)
-library(pROC)
-library(rattle)
-library(MASS) # needed for LDA and QDA
+############## load/install all required packages ##############
+
+needed_pkgs <- c("rstudioapi", "data.table", "descr", "caret", "ggplot2",
+                      "tidyverse", "gridExtra", "viridis","corrplot",
+                      "doParallel", "pander", "pROC", "rattle", "MASS")
+inst_pkg <- needed_pkgs[!(needed_pkgs %in% installed.packages()[,"Package"])]
+if (length(inst_pkg)) install.packages(inst_pkg)
+
+sapply(needed_pkgs, require, character.only = TRUE)
+
 
 ############## Read and prepare the raw-data ##############
 set.seed(100) # set the seed to get similar results for the random-parts
 # set the working directory to the path of the script
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) 
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # read the header of the data
 DT.header <- fread("spambase/header.txt", header = FALSE)
@@ -58,7 +44,7 @@ names(DT.rawData) <- c(as.vector(DT.header$V1), "is_spam_flag")
 # define the flag for spam as factor
 DT.rawData$is_spam_flag <- factor(DT.rawData$is_spam_flag, labels = c("No", "Yes"))
 #change int variables to numeric
-DT.rawData[,56:57] = lapply(DT.rawData[,56:57], as.numeric)
+DT.rawData[,56:57] <- lapply(DT.rawData[,56:57], as.numeric)
 
 ####################################  Split data ####################################
 
@@ -134,11 +120,11 @@ corrplot(cor(DT.rawData[,.SD, .SDcols = c(which(DT.header$V1 == 'word_freq_money
 
 # Correlations by levels in response
 for (lvl in unique(DT.rawData$is_spam_flag)){
-  corrplot(cor(DT.rawData[DT.rawData$is_spam_flag == lvl, 1:57]), 
-           tl.col = "black", tl.cex = 0.8, tl.srt = 45, 
+  corrplot(cor(DT.rawData[DT.rawData$is_spam_flag == lvl, 1:57]),
+           tl.col = "black", tl.cex = 0.8, tl.srt = 45,
            type = "lower")
   rm(lvl)
-}  
+}
 
 
 ############################################################################################################
@@ -151,13 +137,13 @@ create_qqplot <- function(x, ...) {
   for(i in 1:dim(x)[2])
   {
     # we need some quotes around the columnnames because some columns have special characters
-    # and so we have to supply the column-name in the form: "`char_freq_(`" 
+    # and so we have to supply the column-name in the form: "`char_freq_(`"
     quoted_name <- paste('`', colnames(x)[i], '`', sep = "") # needed for special charac
-    gg_object[[i]] <- ggplot(x, aes_string(sample = quoted_name)) + 
+    gg_object[[i]] <- ggplot(x, aes_string(sample = quoted_name)) +
                         stat_qq() +
                         theme(axis.title.x = element_blank(),
                               axis.title.y = element_blank())
-                        #ggtitle(colnames(x)[i]) + # take column-name as title 
+                        #ggtitle(colnames(x)[i]) + # take column-name as title
                         #theme(plot.title = element_text(margin = margin(t = 10, b = -20))) # move title into plotting area
   }
   return(gg_object)
@@ -194,13 +180,13 @@ create_hist <- function(x, ...) {
   for(i in 1:dim(x)[2])
   {
     # we need some quotes around the columnnames because some columns have special characters
-    # and so we have to supply the column-name in the form: "`char_freq_(`" 
+    # and so we have to supply the column-name in the form: "`char_freq_(`"
     quoted_name <- paste('`', colnames(x)[i], '`', sep = "") # needed for special charac
-    gg_object[[i]] <- ggplot(x, aes_string(x = quoted_name)) + 
+    gg_object[[i]] <- ggplot(x, aes_string(x = quoted_name)) +
       geom_histogram() +
       theme(axis.title.x = element_blank(),
             axis.title.y = element_blank())
-    #ggtitle(colnames(x)[i]) + # take column-name as title 
+    #ggtitle(colnames(x)[i]) + # take column-name as title
     #theme(plot.title = element_text(margin = margin(t = 10, b = -20))) # move title into plotting area
   }
   return(gg_object)
@@ -219,13 +205,13 @@ create_dens <- function(x, ...) {
   for(i in 1:dim(x)[2])
   {
     # we need some quotes around the columnnames because some columns have special characters
-    # and so we have to supply the column-name in the form: "`char_freq_(`" 
+    # and so we have to supply the column-name in the form: "`char_freq_(`"
     quoted_name <- paste('`', colnames(x)[i], '`', sep = "") # needed for special charac
-    gg_object1[[i]] <- ggplot(x, aes_string(x = quoted_name)) + 
+    gg_object1[[i]] <- ggplot(x, aes_string(x = quoted_name)) +
       geom_density() +
       theme(axis.title.x = element_blank(),
             axis.title.y = element_blank())
-    #ggtitle(colnames(x)[i]) + # take column-name as title 
+    #ggtitle(colnames(x)[i]) + # take column-name as title
     #theme(plot.title = element_text(margin = margin(t = 10, b = -20))) # move title into plotting area
   }
   return(gg_object1)
@@ -242,7 +228,7 @@ do.call("grid.arrange", c(dens_plots, ncol = 4))
 
 ir.pca <- prcomp(DT.rawData[,!c("is_spam_flag")],
                  center = TRUE,
-                 scale. = TRUE) 
+                 scale. = TRUE)
 plot(ir.pca, type = "l")
 summary(ir.pca) # with non-transformed data we need 43 variables to describe more than 90% of the variance
 
@@ -259,7 +245,7 @@ summary(ir.pca) # with non-transformed data we need 43 variables to describe mor
 #
 ir.pca <- prcomp(DT.transformed[, !c("is_spam_flag")],
                  center = TRUE,
-                 scale. = TRUE) 
+                 scale. = TRUE)
 plot(ir.pca, type = "l")
 summary(ir.pca) # with transformed data we need 40 variables to describe more than 90% of the variance
 
@@ -279,19 +265,19 @@ source("01_LDA.R")
 
 ### try 1 ###
 # needed for special charachters in the column-names of the raw-data
-quoted_columns <- paste('`', names(DT.rawData)[names(DT.rawData) != "is_spam_flag"], '`', sep = "") 
+quoted_columns <- paste('`', names(DT.rawData)[names(DT.rawData) != "is_spam_flag"], '`', sep = "")
 ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_LDA))
 
 ### try 2 ###
 quoted_columns <- paste('`', c("char_freq_!", "capital_run_length_longest",
                                "capital_run_length_average", "word_freq_your",
-                               "char_freq_$", "capital_run_length_total"), '`', sep = "") 
+                               "char_freq_$", "capital_run_length_total"), '`', sep = "")
 ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_LDA))
 
 ### try 3 ### --> just test the result with only one predictor
-quoted_columns <- paste('`', c("char_freq_!"), '`', sep = "") 
+quoted_columns <- paste('`', c("char_freq_!"), '`', sep = "")
 ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_LDA))
 
@@ -300,14 +286,14 @@ quoted_columns <- paste('`',
                         names(DT.rawData)[!(names(DT.rawData) %in%
                                             c("is_spam_flag","word_freq_857", "word_freq_415"))],
                         '`',
-                        sep = "") 
+                        sep = "")
 ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_LDA))
 
 ### try 5 ### --> calculate corr between is_spam_flag and all other variables and take the "biggest" correlations
 quoted_columns <- paste('`', c("capital_run_length_total","capital_run_length_longest","char_freq_!",
                                "word_freq_hp","word_freq_your","word_freq_000", "word_freq_you",
-                               "word_freq_business","word_freq_free","word_freq_remove"), '`', sep = "") 
+                               "word_freq_business","word_freq_free","word_freq_remove"), '`', sep = "")
 ergebnis_LDA <- learnLDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_LDA))
 
@@ -317,25 +303,25 @@ source("02_QDA.R")
 
 ### try 1 ###
 # needed for special charachters in the column-names of the raw-data
-quoted_columns <- paste('`', names(DT.rawData)[names(DT.rawData) != "is_spam_flag"], '`', sep = "") 
+quoted_columns <- paste('`', names(DT.rawData)[names(DT.rawData) != "is_spam_flag"], '`', sep = "")
 ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_QDA))
 
 ### try 2 ###
 quoted_columns <- paste('`', c("char_freq_!", "capital_run_length_longest",
                                "capital_run_length_average", "word_freq_your",
-                               "char_freq_$", "capital_run_length_total"), '`', sep = "") 
+                               "char_freq_$", "capital_run_length_total"), '`', sep = "")
 ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_QDA))
 
 ### try 3 ###
-quoted_columns <- paste('`', c("char_freq_!", "capital_run_length_longest", "word_freq_your"), '`', sep = "") 
+quoted_columns <- paste('`', c("char_freq_!", "capital_run_length_longest", "word_freq_your"), '`', sep = "")
 ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_QDA))
 
 ### try 4 ###
 quoted_columns <- paste('`', c("capital_run_length_total","capital_run_length_longest","char_freq_!",
                                "word_freq_hp","word_freq_your","word_freq_000", "word_freq_you",
-                              "word_freq_business","word_freq_free","word_freq_remove"), '`', sep = "") 
+                              "word_freq_business","word_freq_free","word_freq_remove"), '`', sep = "")
 ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_QDA))
