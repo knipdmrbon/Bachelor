@@ -20,10 +20,11 @@
 
 
 ############## load/install all required packages ##############
-
+library("rattle")
 needed_pkgs <- c("rstudioapi", "data.table", "descr", "caret", "ggplot2",
                       "tidyverse", "gridExtra", "viridis","corrplot",
-                      "doParallel", "pander", "pROC", "rattle", "MASS")
+                      "doParallel", "pander", "pROC", "MASS")
+
 inst_pkg <- needed_pkgs[!(needed_pkgs %in% installed.packages()[,"Package"])]
 if (length(inst_pkg)) install.packages(inst_pkg)
 
@@ -45,6 +46,7 @@ names(DT.rawData) <- c(as.vector(DT.header$V1), "is_spam_flag")
 DT.rawData$is_spam_flag <- factor(DT.rawData$is_spam_flag, labels = c("No", "Yes"))
 #change int variables to numeric
 DT.rawData[,56:57] <- lapply(DT.rawData[,56:57], as.numeric)
+
 
 ####################################  Split data ####################################
 
@@ -167,7 +169,7 @@ do.call("grid.arrange", c(qq_plots, ncol = 4))
 #  }
 #})
 
-DT.transformed <- lapply(DT.rawData[,1:57], log1p)
+DT.transformed <- lapply(DT.rawData[,!c("is_spam_flag")], log1p)
 DT.transformed <- data.frame(DT.transformed, is_spam_flag = DT.rawData$is_spam_flag)
 
 # transform the result of lapply (list) to a data.table
