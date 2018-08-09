@@ -20,11 +20,10 @@
 
 
 ############## load/install all required packages ##############
-library("rattle")
+
 needed_pkgs <- c("rstudioapi", "data.table", "descr", "caret", "ggplot2",
                       "tidyverse", "gridExtra", "viridis","corrplot",
-                      "doParallel", "pander", "pROC", "MASS")
-
+                      "doParallel", "pander", "pROC", "MASS", "keras")
 inst_pkg <- needed_pkgs[!(needed_pkgs %in% installed.packages()[,"Package"])]
 if (length(inst_pkg)) install.packages(inst_pkg)
 
