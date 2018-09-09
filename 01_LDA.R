@@ -7,7 +7,6 @@
 # columns ---> columns of the data-sets which should be used for training
 ##############################################################################################################
 learnLDA <- function(DT.train, DT.test, columns, ...){
-  
   # generate a formula with the variables supplied by columns for the LDA - algorithm
   LDA_formula <- as.formula(c("is_spam_flag ~", paste(columns, collapse = "+")))
   # apply the LDA-algorithm to the training-data --> use all variables as predictors

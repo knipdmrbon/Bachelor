@@ -36,9 +36,9 @@ plotOverview <- ggplot(data.frame(x = c(-4, 4)), aes(x = x)) +
   stat_function(fun = softmaxFun,   n = 500, size = 0.8, aes(colour = "Softmax   ")) +
   theme(legend.position = "top",
         legend.title=element_blank(),
-        legend.text = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 17, face = "bold"),
         legend.key = element_rect(size = 3),
-        legend.key.size = unit(1.5, 'lines')) +
+        legend.key.size = unit(2.5, 'lines')) +
   scale_y_continuous(name = "f(x)")
 
 plotOverview

@@ -194,7 +194,7 @@ create_hist <- function(x, ...) {
 }
 
 # create a list of hist-plots for all input-data except the spam flag
-hist_plots <- create_hist(DT.transformed)
+hist_plots <- create_hist(DT.transformed[ ,names(DT.transformed) != "is_spam_flag"])
 # draw all qq-plots on one page
 do.call("grid.arrange", c(hist_plots, ncol = 4))
 
@@ -219,7 +219,7 @@ create_dens <- function(x, ...) {
 }
 
 # create a list of dense-plots for all input-data except the spam flag
-dens_plots <- create_dens(DT.transformed)
+dens_plots <- create_dens(DT.transformed[, names(DT.transformed) != "is_spam_flag"])
 # draw all qq-plots on one page
 do.call("grid.arrange", c(dens_plots, ncol = 4))
 
@@ -326,3 +326,15 @@ quoted_columns <- paste('`', c("capital_run_length_total","capital_run_length_lo
                               "word_freq_business","word_freq_free","word_freq_remove"), '`', sep = "")
 ergebnis_QDA <- learnQDA(DT.train, DT.test, quoted_columns)
 mean(unlist(ergebnis_QDA))
+
+
+
+
+
+###################### keras ###############################
+test <- normalize(DT.train[[1]])
+
+model <- keras_model_sequential()
+
+
+devtools::install_github("rstudio/keras")
